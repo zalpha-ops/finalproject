@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eagle Flight School - Local Setup</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #6B46C1 0%, #4C1D95 100%);
+            color: white;
+            padding: 2rem;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            color: #333;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #6B46C1;
+            text-align: center;
+        }
+        .step {
+            background: #f8fafc;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 10px;
+            border-left: 5px solid #6B46C1;
+        }
+        .step h3 {
+            color: #4C1D95;
+            margin-top: 0;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #6B46C1, #4C1D95);
+            color: white;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 10px;
+            margin: 0.5rem;
+            font-weight: 600;
+            transition: transform 0.3s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        .accounts {
+            background: #e7f3ff;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        .accounts h4 {
+            color: #0066cc;
+            margin-top: 0;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛩️ Eagle Flight School</h1>
+        <h2 class="center">Local XAMPP Setup Guide</h2>
+        
+        <div class="warning">
+            <strong>⚠️ Before You Start:</strong><br>
+            Make sure XAMPP Apache and MySQL are running!
+        </div>
+
+        <div class="step">
+            <h3>📋 Step 1: Create Database</h3>
+            <p>Click the button below to automatically create your local database and all tables:</p>
+            <div class="center">
+                <a href="setup_local_database.php" class="btn">🛠️ Setup Database Now</a>
+            </div>
+            <p><small>This will create the 'eagleflight_db' database with all necessary tables and sample data.</small></p>
+        </div>
+
+        <div class="step">
+            <h3>🚀 Step 2: Access Your System</h3>
+            <p>After database setup is complete, access your Eagle Flight School:</p>
+            <div class="center">
+                <a href="index.php" class="btn">🏠 Landing Page</a>
+                <a href="quick_login.php" class="btn">🔐 Login Portal</a>
+            </div>
+        </div>
+
+        <div class="accounts">
+            <h4>🔑 Default Login Accounts</h4>
+            <p><strong>Admin Account:</strong></p>
+            <ul>
+                <li>Username: <code>admin</code></li>
+                <li>Password: <code>admin123</code></li>
+                <li>Access: Full system control</li>
+            </ul>
+            
+            <p><strong>Instructor Account:</strong></p>
+            <ul>
+                <li>Username: <code>mary</code></li>
+                <li>Password: <code>instructor123</code></li>
+                <li>Access: Grade management, view students</li>
+            </ul>
+            
+            <p><strong>Student Account:</strong></p>
+            <ul>
+                <li>Username: <code>student</code></li>
+                <li>Password: <code>student123</code></li>
+                <li>Access: View courses, grades, assignments</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>🔧 Troubleshooting</h3>
+            <p><strong>If you see "Database connection failed":</strong></p>
+            <ul>
+                <li>Make sure XAMPP MySQL is running (green in control panel)</li>
+                <li>Run the database setup again</li>
+                <li>Check that database 'eagleflight_db' exists in phpMyAdmin</li>
+            </ul>
+            
+            <p><strong>Need to check database manually?</strong></p>
+            <div class="center">
+                <a href="http://localhost/phpmyadmin" class="btn" target="_blank">📊 Open phpMyAdmin</a>
+            </div>
+        </div>
+
+        <div class="success">
+            <strong>✅ What You'll Get:</strong><br>
+            • Beautiful modern interface with purple theme<br>
+            • Complete student management system<br>
+            • Grade tracking and reporting<br>
+            • Course catalog and enrollment<br>
+            • Assignment submission system<br>
+            • Flight scheduling<br>
+            • Announcements and notifications<br>
+            • Role-based dashboards (Student/Instructor/Admin)
+        </div>
+
+        <div class="step">
+            <h3>📚 Additional Resources</h3>
+            <ul>
+                <li><strong>Database Config:</strong> db_connect.php (already set for local)</li>
+                <li><strong>Setup Guide:</strong> Saved in Documents folder</li>
+                <li><strong>Test Connection:</strong> <a href="test_connection.php">test_connection.php</a></li>
+            </ul>
+        </div>
+
+        <div class="center" style="margin-top: 2rem;">
+            <p><strong>Ready to start?</strong></p>
+            <a href="setup_local_database.php" class="btn" style="font-size: 1.2rem;">🚀 Setup Database & Get Started!</a>
+        </div>
+    </div>
+</body>
+</html>

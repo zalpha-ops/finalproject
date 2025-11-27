@@ -1,0 +1,30 @@
+<?php
+// Local Database Configuration for XAMPP
+// COPY this file to db_connect_local.php and update with your credentials
+// DO NOT commit db_connect_local.php to git!
+
+$host = 'localhost';  // or '127.0.0.1'
+$dbname = 'eagle-flight-school';
+$username = 'root';
+$password = '';  // Your MySQL password (default XAMPP has no password)
+$port = 3306;
+
+try {
+    $pdo = new PDO(
+        "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4",
+        $username,
+        $password,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false
+        ]
+    );
+} catch (PDOException $e) {
+    die("Local Database Connection Failed: " . $e->getMessage() . 
+        "<br><br>Make sure:<br>" .
+        "1. XAMPP MySQL is running<br>" .
+        "2. Database 'eagle-flight-school' exists<br>" .
+        "3. Import database_setup.sql in phpMyAdmin");
+}
+?>

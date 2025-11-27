@@ -1,0 +1,103 @@
+# Eagle Flight School - Git Ignore File
+
+# ============================================
+# DATABASE & CONFIGURATION FILES
+# ============================================
+# Never commit database credentials or local configs
+db_connect_local.php
+db_connect_infinity.php
+db_connect.php
+*.sql.backup
+*.sql.gz
+
+# ============================================
+# COMPOSER & DEPENDENCIES
+# ============================================
+/vendor/
+composer.phar
+composer.lock
+composer.zip
+
+# ============================================
+# UPLOADS & USER FILES
+# ============================================
+/uploads/*
+!/uploads/.gitkeep
+/uploads/**/*
+
+# ============================================
+# LOGS & TEMPORARY FILES
+# ============================================
+*.log
+*.tmp
+*.temp
+/logs/
+error_log
+debug.log
+
+# ============================================
+# BACKUP & TEST FILES
+# ============================================
+*_backup.php
+*_copy.php
+* copy.php
+backup_*.php
+test_*.php
+debug_*.php
+diagnose_*.php
+fix_*.php
+setup_*.php
+check_*.php
+emergency_*.php
+quick_*.php
+simple_*.php
+
+# ============================================
+# PHPMAILER (if using local copy)
+# ============================================
+/PHPMailer/
+
+# ============================================
+# IDE & EDITOR FILES
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ============================================
+# WINDOWS & MAC OS FILES
+# ============================================
+desktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ============================================
+# SENSITIVE FILES
+# ============================================
+# Files containing passwords or sensitive data
+*password*.php
+*hash*.php
+*pash*.php
+*mash*.php
+set_*_password.php
+
+# ============================================
+# ENVIRONMENT FILES
+# ============================================
+.env
+.env.local
+.env.*.local
+config.local.php
+
+# ============================================
+# ARCHIVED & OLD FILES
+# ============================================
+*.old
+*.bak
+*_old.*
+archived_*
