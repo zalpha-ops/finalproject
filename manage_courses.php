@@ -17,22 +17,22 @@ if (isset($_POST['add'])) {
 
 // Handle Edit Course
 if (isset($_POST['edit'])) {
-    $id = (int)$_POST['course_id'];
+    $id = (int)$_POST['id'];
     $title = trim($_POST['title']);
     $description = trim($_POST['description']);
-    $stmt = $pdo->prepare("UPDATE courses SET title=?, description=? WHERE course_id=?");
+    $stmt = $pdo->prepare("UPDATE courses SET title=?, description=? WHERE id=?");
     $stmt->execute([$title, $description, $id]);
 }
 
 // Handle Delete Course
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
-    $stmt = $pdo->prepare("DELETE FROM courses WHERE course_id=?");
+    $stmt = $pdo->prepare("DELETE FROM courses WHERE id=?");
     $stmt->execute([$id]);
 }
 
 // Fetch all courses
-$stmt = $pdo->query("SELECT course_id, title, description, created_at, updated_at FROM courses ORDER BY course_id DESC");
+$stmt = $pdo->query("SELECT id, title, description, created_at FROM courses ORDER BY id DESC");
 $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -66,28 +66,30 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
             <tr>
-                <th>ID</th><th>Title</th><th>Description</th><th>Created</th><th>Updated</th><th>Actions</th>
+                <th>ID</th><th>Code</th><th>Title</th><th>Description</th><th>Duration (hrs)</th><th>Price</th><th>Created</th><th>Actions</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($courses as $course): ?>
                 <tr>
-                    <td><?php echo $course['course_id']; ?></td>
+                    <td><?php echo $course['id']; ?></td>
+                    <td><?php echo htmlspecialchars($course['course_code'] ?? 'N/A'); ?></td>
                     <td><?php echo htmlspecialchars($course['title']); ?></td>
-                    <td><?php echo htmlspecialchars($course['description']); ?></td>
+                    <td><?php echo htmlspecialchars($course['description'] ?? ''); ?></td>
+                    <td><?php echo $course['duration_hours'] ?? 'N/A'; ?></td>
+                    <td>$<?php echo number_format($course['price'] ?? 0, 2); ?></td>
                     <td><?php echo $course['created_at']; ?></td>
-                    <td><?php echo $course['updated_at']; ?></td>
                     <td>
                         <!-- Edit Form -->
                         <form method="POST" style="display:inline-block;">
                             <input type="hidden" name="edit" value="1">
-                            <input type="hidden" name="course_id" value="<?php echo $course['course_id']; ?>">
-                            <input type="text" name="title" value="<?php echo htmlspecialchars($course['title']); ?>" required>
-                            <input type="text" name="description" value="<?php echo htmlspecialchars($course['description']); ?>" required>
+                            <input type="hidden" name="id" value="<?php echo $course['id']; ?>">
+                            <input type="text" name="title" value="<?php echo htmlspecialchars($course['title']); ?>" required class="form-control form-control-sm d-inline w-auto">
+                            <input type="text" name="description" value="<?php echo htmlspecialchars($course['description'] ?? ''); ?>" class="form-control form-control-sm d-inline w-auto">
                             <button type="submit" class="btn btn-warning btn-sm">Update</button>
                         </form>
                         <!-- Delete Link -->
-                        <a href="manage_courses.php?delete=<?php echo $course['course_id']; ?>" 
+                        <a href="manage_courses.php?delete=<?php echo $course['id']; ?>" 
                            class="btn btn-danger btn-sm"
                            onclick="return confirm('Delete this course?');">Delete</a>
                     </td>

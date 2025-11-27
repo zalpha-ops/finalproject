@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $password = $_POST['password'] ?? '';
-    $specialization = trim($_POST['specialization'] ?? '');
+    $certifications = trim($_POST['certifications'] ?? '');
     $experience = trim($_POST['experience'] ?? '');
     
     // Validation
@@ -40,14 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $columns = $stmt->fetchAll(PDO::FETCH_COLUMN);
                 
                 // Build dynamic insert query based on existing columns
-                $insertColumns = ['name', 'email', 'phone', 'specialization', 'status'];
-                $insertValues = [':name', ':email', ':phone', ':specialization', ':status'];
+                $insertColumns = ['name', 'email', 'username', 'password', 'phone', 'certifications', 'status'];
+                $insertValues = [':name', ':email', ':username', ':password', ':phone', ':certifications', ':status'];
                 $insertData = [
                     ':name' => $name,
                     ':email' => $email,
+                    ':username' => $username,
+                    ':password' => $passwordHash,
                     ':phone' => $phone,
-                    ':specialization' => $specialization,
-                    ':status' => 'Active'
+                    ':certifications' => $certifications,
+                    ':status' => 'active'
                 ];
                 
                 // Add optional columns if they exist
@@ -242,17 +244,10 @@ try {
               </div>
 
               <div class="col-md-6">
-                <label class="form-label">Specialization</label>
-                <select name="specialization" class="form-select">
-                  <option value="">Select Specialization</option>
-                  <option value="Private Pilot">Private Pilot</option>
-                  <option value="Commercial Pilot">Commercial Pilot</option>
-                  <option value="Instrument Rating">Instrument Rating</option>
-                  <option value="Flight Instructor">Flight Instructor (CFI)</option>
-                  <option value="Multi-Engine">Multi-Engine</option>
-                  <option value="Ground School">Ground School</option>
-                </select>
-                <small class="text-muted">Primary teaching area</small>
+                <label class="form-label">Certifications</label>
+                <input type="text" name="certifications" class="form-control" 
+                       placeholder="CFI, CFII, MEI, ATP">
+                <small class="text-muted">Comma-separated certifications (e.g., CFI, CFII, MEI)</small>
               </div>
 
               <div class="col-12">

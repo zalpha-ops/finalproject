@@ -7,7 +7,7 @@ require_role('admin');
 // Get all students, instructors, courses, and aircraft for dropdowns
 $students = $pdo->query("SELECT id, name, student_id FROM student_profiles ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
 $instructors = $pdo->query("SELECT instructor_id, name FROM instructors ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
-$courses = $pdo->query("SELECT course_id, title FROM courses ORDER BY title")->fetchAll(PDO::FETCH_ASSOC);
+$courses = $pdo->query("SELECT id, title FROM courses ORDER BY title")->fetchAll(PDO::FETCH_ASSOC);
 $aircraft = $pdo->query("SELECT registration, model FROM aircraft WHERE status = 'available' ORDER BY registration")->fetchAll(PDO::FETCH_ASSOC);
 
 // Get all schedules
@@ -20,7 +20,7 @@ $schedules = $pdo->query("
     FROM schedules s
     JOIN student_profiles sp ON s.student_id = sp.id
     JOIN instructors i ON s.instructor_id = i.instructor_id
-    LEFT JOIN courses c ON s.course_id = c.course_id
+    LEFT JOIN courses c ON s.course_id = c.id
     ORDER BY s.session_date DESC, s.start_time DESC
 ")->fetchAll(PDO::FETCH_ASSOC);
 ?>
