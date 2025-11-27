@@ -10,15 +10,15 @@ if (!isset($_SESSION['admin_id'])) {
 
 // Fetch grades with student + course info
 $sql = "
-    SELECT g.id, sp.name AS student_name, c.course_name AS course_name,
-           g.grade, g.points, g.semester, g.year, g.created_at,
+    SELECT g.id, sp.name AS student_name, c.title AS course_name,
+           g.grade, g.score, g.created_at,
            CASE 
-               WHEN g.grade IN ('A', 'B', 'C', 'D') THEN 'Pass'
-               WHEN g.grade = 'F' THEN 'Fail'
+               WHEN g.grade IN ('A', 'A-', 'B+', 'B', 'B-', 'C+', 'C') THEN 'Pass'
+               WHEN g.grade IN ('D', 'F') THEN 'Fail'
                ELSE 'Pending'
            END AS status
     FROM grades g
-    JOIN student_profiles sp ON g.student_username = sp.username
+    JOIN student_profiles sp ON g.student_id = sp.id
     JOIN courses c ON g.course_id = c.id
     ORDER BY g.created_at DESC
 ";

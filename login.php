@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db_connect.php';
+require 'db.php';
 
 $error = null;
 
@@ -20,28 +20,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 1. Try STUDENT LOGIN first
         if (!$authenticated) {
             try {
-                // Try with password_hash column first
-                $stmt = $pdo->prepare("SELECT id, username, name, password_hash, status 
-                                       FROM student_profiles WHERE username = :username LIMIT 1");
+                // Try users table for students
+                $stmt = $pdo->prepare("SELECT id, username, password, role 
+                                       FROM users WHERE username = :username AND role = 'student' LIMIT 1");
                 $stmt->execute([':username' => $username]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
-                $passwordField = 'password_hash';
+                $passwordField = 'password';
             } catch (Exception $e) {
-                // Fallback to password column
-                try {
-                    $stmt = $pdo->prepare("SELECT id, username, name, password, status 
-                                           FROM student_profiles WHERE username = :username LIMIT 1");
-                    $stmt->execute([':username' => $username]);
-                    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-                    $passwordField = 'password';
-                } catch (Exception $e2) {
-                    // Try users table as fallback
-                    $stmt = $pdo->prepare("SELECT id, username, password_hash, status, role 
-                                           FROM users WHERE username = :username AND role = 'student' LIMIT 1");
-                    $stmt->execute([':username' => $username]);
-                    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-                    $passwordField = 'password_hash';
-                }
+                $user = null;
             }
 
             if ($user) {
@@ -76,22 +62,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 2. Try INSTRUCTOR LOGIN
         if (!$authenticated) {
             try {
-                // Try with password_hash column first
-                $stmt = $pdo->prepare("SELECT instructor_id, name, username, password_hash, status 
-                                       FROM instructors WHERE username = :username LIMIT 1");
-                $stmt->execute([':username' => $username]);
-                $user = $stmt->fetch(PDO::FETCH_ASSOC);
-                $passwordField = 'password_hash';
-            } catch (Exception $e) {
-                // Fallback to password column
                 $stmt = $pdo->prepare("SELECT instructor_id, name, username, password, status 
                                        FROM instructors WHERE username = :username LIMIT 1");
                 $stmt->execute([':username' => $username]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
                 $passwordField = 'password';
+            } catch (Exception $e) {
+                $user = null;
             }
 
-            if ($user && ($user['status'] ?? 'Active') === 'Active' && password_verify($password, $user[$passwordField] ?? '')) {
+            if ($user && strtolower($user['status'] ?? 'active') === 'active' && password_verify($password, $user[$passwordField] ?? '')) {
                 $_SESSION['instructor_id'] = $user['instructor_id'];
                 $_SESSION['instructor_name'] = $user['name'];
                 $_SESSION['username'] = $user['username'];
@@ -105,42 +85,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // 3. Try ADMIN LOGIN
         if (!$authenticated) {
-            $user = null;
-            
-            // Try with username column first (if it exists)
             try {
                 $stmt = $pdo->prepare("SELECT id, email, username, password, role 
-                                       FROM admins WHERE username = :username LIMIT 1");
+                                       FROM users WHERE username = :username AND role = 'admin' LIMIT 1");
                 $stmt->execute([':username' => $username]);
                 $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            } catch (Exception $e) {
-                // Username column doesn't exist, that's okay
-            }
-            
-            // If not found by username, or username column doesn't exist, try email
-            if (!$user) {
-                try {
-                    $stmt = $pdo->prepare("SELECT id, email, password, role 
-                                           FROM admins WHERE email = :email LIMIT 1");
-                    $stmt->execute([':email' => $username]);
-                    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-                    // Add username field for compatibility
-                    if ($user) {
-                        $user['username'] = $user['email'];
-                    }
-                } catch (Exception $e) {
-                    $user = null;
+                
+                if ($user && password_verify($password, $user['password'] ?? '')) {
+                    $_SESSION['admin_id'] = $user['id'];
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['email'] = $user['email'];
+                    $_SESSION['role'] = 'admin';
+                    $authenticated = true;
+                    header("Location: admin_dashboard.php");
+                    exit;
                 }
-            }
-
-            if ($user && password_verify($password, $user['password'] ?? '')) {
-                $_SESSION['admin_id'] = $user['id'];
-                $_SESSION['user_id'] = $user['id']; // For auth.php compatibility
-                $_SESSION['username'] = $user['username'] ?? $user['email'];
-                $_SESSION['role'] = 'admin';
-                $authenticated = true;
-                header("Location: admin_dashboard.php");
-                exit;
+            } catch (Exception $e) {
+                // Admin login failed
             }
         }
         

@@ -3,7 +3,7 @@
 $host = "localhost";
 $dbname = "eagle-flight-school";  // your database name
 $username = "root";               // default XAMPP username
-$password = "";                   // default XAMPP password is empty
+$password = "";  // default XAMPP password is empty
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);

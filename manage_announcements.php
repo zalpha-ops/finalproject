@@ -19,51 +19,53 @@ $success = "";
 // Add announcement
 if (isset($_POST['add'])) {
     $title = trim($_POST['title']);
-    $message = trim($_POST['message']);
-    $start_date = trim($_POST['start_date']);
-    $end_date = isset($_POST['end_date']) && $_POST['end_date'] !== "" ? trim($_POST['end_date']) : null;
+    $content = trim($_POST['content']);
+    $target_audience = $_POST['target_audience'] ?? 'all';
+    $priority = $_POST['priority'] ?? 'normal';
+    $expires_at = isset($_POST['expires_at']) && $_POST['expires_at'] !== "" ? trim($_POST['expires_at']) : null;
 
-    if ($title && $message && $start_date) {
-        $stmt = $pdo->prepare("INSERT INTO announcements (title, message, start_date, end_date, author_admin_id) VALUES (?, ?, ?, ?, ?)");
+    if ($title && $content) {
+        $stmt = $pdo->prepare("INSERT INTO announcements (title, content, author_id, target_audience, priority, expires_at) VALUES (?, ?, ?, ?, ?, ?)");
         try {
-            $stmt->execute([$title, $message, $start_date, $end_date, $_SESSION['admin_id']]);
+            $stmt->execute([$title, $content, $_SESSION['admin_id'], $target_audience, $priority, $expires_at]);
             $success = "Announcement added.";
         } catch (PDOException $e) {
             $error = "Failed to add announcement. Please try again.";
         }
     } else {
-        $error = "Title, message, and start date are required.";
+        $error = "Title and content are required.";
     }
 }
 
 // Edit announcement
 if (isset($_POST['edit'])) {
-    $announcement_id = (int)$_POST['announcement_id'];
+    $id = (int)$_POST['id'];
     $title = trim($_POST['title']);
-    $message = trim($_POST['message']);
-    $start_date = trim($_POST['start_date']);
-    $end_date = isset($_POST['end_date']) && $_POST['end_date'] !== "" ? trim($_POST['end_date']) : null;
+    $content = trim($_POST['content']);
+    $target_audience = $_POST['target_audience'] ?? 'all';
+    $priority = $_POST['priority'] ?? 'normal';
+    $expires_at = isset($_POST['expires_at']) && $_POST['expires_at'] !== "" ? trim($_POST['expires_at']) : null;
 
-    if ($announcement_id && $title && $message && $start_date) {
-        $stmt = $pdo->prepare("UPDATE announcements SET title=?, message=?, start_date=?, end_date=? WHERE announcement_id=?");
+    if ($id && $title && $content) {
+        $stmt = $pdo->prepare("UPDATE announcements SET title=?, content=?, target_audience=?, priority=?, expires_at=? WHERE id=?");
         try {
-            $stmt->execute([$title, $message, $start_date, $end_date, $announcement_id]);
+            $stmt->execute([$title, $content, $target_audience, $priority, $expires_at, $id]);
             $success = "Announcement updated.";
         } catch (PDOException $e) {
             $error = "Failed to update announcement.";
         }
     } else {
-        $error = "Title, message, and start date are required.";
+        $error = "Title and content are required.";
     }
 }
 
 // Delete announcement
 if (isset($_GET['delete'])) {
-    $announcement_id = (int)$_GET['delete'];
-    if ($announcement_id) {
-        $stmt = $pdo->prepare("DELETE FROM announcements WHERE announcement_id=?");
+    $id = (int)$_GET['delete'];
+    if ($id) {
+        $stmt = $pdo->prepare("DELETE FROM announcements WHERE id=?");
         try {
-            $stmt->execute([$announcement_id]);
+            $stmt->execute([$id]);
             $success = "Announcement deleted.";
         } catch (PDOException $e) {
             $error = "Failed to delete announcement.";
@@ -73,11 +75,11 @@ if (isset($_GET['delete'])) {
 
 // Fetch all announcements (newest first)
 $stmt = $pdo->query("
-    SELECT a.announcement_id, a.title, a.message, a.start_date, a.end_date, a.created_at, a.updated_at,
-           ad.email AS author_email
+    SELECT a.id, a.title, a.content, a.target_audience, a.priority, a.created_at, a.expires_at,
+           u.username AS author_name
     FROM announcements a
-    JOIN admins ad ON ad.id = a.author_admin_id
-    ORDER BY a.announcement_id DESC
+    LEFT JOIN users u ON u.id = a.author_id
+    ORDER BY a.id DESC
 ");
 $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -99,20 +101,31 @@ $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <?php endif; ?>
 
     <!-- Add Announcement Form -->
-    <form method="POST" class="mb-4">
+    <form method="POST" class="mb-4 card p-3">
         <input type="hidden" name="add" value="1">
         <div class="row g-2">
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <input type="text" name="title" class="form-control" placeholder="Title" required>
             </div>
-            <div class="col-md-5">
-                <input type="text" name="message" class="form-control" placeholder="Message" required>
+            <div class="col-md-4">
+                <textarea name="content" class="form-control" placeholder="Content" rows="2" required></textarea>
             </div>
             <div class="col-md-2">
-                <input type="date" name="start_date" class="form-control" required>
+                <select name="target_audience" class="form-select">
+                    <option value="all">All</option>
+                    <option value="students">Students</option>
+                    <option value="instructors">Instructors</option>
+                </select>
             </div>
             <div class="col-md-2">
-                <input type="date" name="end_date" class="form-control" placeholder="Optional">
+                <select name="priority" class="form-select">
+                    <option value="normal">Normal</option>
+                    <option value="high">High</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="datetime-local" name="expires_at" class="form-control" placeholder="Expires (optional)">
             </div>
         </div>
         <div class="mt-2">
@@ -124,34 +137,22 @@ $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <table class="table table-bordered table-striped">
         <thead class="table-dark">
             <tr>
-                <th>ID</th><th>Title</th><th>Message</th><th>Start</th><th>End</th><th>Author</th><th>Created</th><th>Updated</th><th>Actions</th>
+                <th>ID</th><th>Title</th><th>Content</th><th>Audience</th><th>Priority</th><th>Author</th><th>Created</th><th>Expires</th><th>Actions</th>
             </tr>
         </thead>
         <tbody>
         <?php foreach ($announcements as $a): ?>
             <tr>
-                <td><?php echo $a['announcement_id']; ?></td>
+                <td><?php echo $a['id']; ?></td>
                 <td><?php echo htmlspecialchars($a['title']); ?></td>
-                <td><?php echo htmlspecialchars($a['message']); ?></td>
-                <td><?php echo htmlspecialchars($a['start_date']); ?></td>
-                <td><?php echo htmlspecialchars($a['end_date'] ?? ''); ?></td>
-                <td><?php echo htmlspecialchars($a['author_email']); ?></td>
+                <td><?php echo htmlspecialchars(substr($a['content'], 0, 50)) . '...'; ?></td>
+                <td><?php echo htmlspecialchars($a['target_audience']); ?></td>
+                <td><span class="badge bg-<?php echo $a['priority'] === 'high' ? 'danger' : ($a['priority'] === 'low' ? 'secondary' : 'primary'); ?>"><?php echo htmlspecialchars($a['priority']); ?></span></td>
+                <td><?php echo htmlspecialchars($a['author_name'] ?? 'N/A'); ?></td>
                 <td><?php echo htmlspecialchars($a['created_at']); ?></td>
-                <td><?php echo htmlspecialchars($a['updated_at']); ?></td>
+                <td><?php echo htmlspecialchars($a['expires_at'] ?? 'Never'); ?></td>
                 <td>
-                    <!-- Edit Form -->
-                    <form method="POST" class="d-inline">
-                        <input type="hidden" name="edit" value="1">
-                        <input type="hidden" name="announcement_id" value="<?php echo $a['announcement_id']; ?>">
-                        <input type="text" name="title" value="<?php echo htmlspecialchars($a['title']); ?>" class="form-control form-control-sm d-inline w-auto" required>
-                        <input type="text" name="message" value="<?php echo htmlspecialchars($a['message']); ?>" class="form-control form-control-sm d-inline w-auto" required>
-                        <input type="date" name="start_date" value="<?php echo htmlspecialchars($a['start_date']); ?>" class="form-control form-control-sm d-inline w-auto" required>
-                        <input type="date" name="end_date" value="<?php echo htmlspecialchars($a['end_date']); ?>" class="form-control form-control-sm d-inline w-auto">
-                        <button type="submit" class="btn btn-warning btn-sm">Update</button>
-                    </form>
-
-                    <!-- Delete Link -->
-                    <a href="manage_announcements.php?delete=<?php echo $a['announcement_id']; ?>"
+                    <a href="manage_announcements.php?delete=<?php echo $a['id']; ?>"
                        class="btn btn-danger btn-sm"
                        onclick="return confirm('Delete this announcement?');">Delete</a>
                 </td>

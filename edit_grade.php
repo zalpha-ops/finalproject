@@ -9,26 +9,26 @@ if (!isset($_SESSION['admin_id'])) {
 }
 
 // Fetch all students for dropdown
-$students = $pdo->query("SELECT username, name FROM student_profiles ORDER BY name ASC")->fetchAll();
+$students = $pdo->query("SELECT id, student_id, name FROM student_profiles ORDER BY name ASC")->fetchAll();
 
-// Get selected student_username from query string
-$student_username = $_GET['student_username'] ?? null;
+// Get selected student_id from query string
+$student_id = $_GET['student_id'] ?? null;
 $student = null;
 $courses = [];
 $grades = [];
 
-if ($student_username) {
+if ($student_id) {
     // Fetch student info
-    $studentStmt = $pdo->prepare("SELECT username, name FROM student_profiles WHERE username = ?");
-    $studentStmt->execute([$student_username]);
+    $studentStmt = $pdo->prepare("SELECT id, student_id, name FROM student_profiles WHERE id = ?");
+    $studentStmt->execute([$student_id]);
     $student = $studentStmt->fetch();
 
     // Fetch all courses
-    $courses = $pdo->query("SELECT id, course_name FROM courses ORDER BY course_name ASC")->fetchAll();
+    $courses = $pdo->query("SELECT id, title FROM courses ORDER BY title ASC")->fetchAll();
 
     // Fetch existing grades for this student
-    $gradesStmt = $pdo->prepare("SELECT * FROM grades WHERE student_username = ?");
-    $gradesStmt->execute([$student_username]);
+    $gradesStmt = $pdo->prepare("SELECT * FROM grades WHERE student_id = ?");
+    $gradesStmt->execute([$student_id]);
     foreach ($gradesStmt->fetchAll() as $g) {
         $grades[$g['course_id']] = $g;
     }
@@ -37,37 +37,35 @@ if ($student_username) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach ($_POST['grades'] as $course_id => $data) {
             $grade     = $data['grade'] ?? null;
-            $points    = $data['points'] ?? null;
-            $semester  = $data['semester'] ?? null;
-            $year      = $data['year'] ?? date('Y');
+            $score     = $data['score'] ?? null;
+            $comments  = $data['comments'] ?? null;
 
             if (isset($grades[$course_id])) {
                 // Update existing grade
                 $stmt = $pdo->prepare("
                     UPDATE grades 
-                    SET grade = :grade, points = :points, semester = :semester, year = :year
-                    WHERE student_username = :student_username AND course_id = :course_id
+                    SET grade = :grade, score = :score, comments = :comments
+                    WHERE student_id = :student_id AND course_id = :course_id
                 ");
             } else {
                 // Insert new grade
                 $stmt = $pdo->prepare("
-                    INSERT INTO grades (student_username, course_id, grade, points, semester, year)
-                    VALUES (:student_username, :course_id, :grade, :points, :semester, :year)
+                    INSERT INTO grades (student_id, course_id, grade, score, comments)
+                    VALUES (:student_id, :course_id, :grade, :score, :comments)
                 ");
             }
 
             $stmt->execute([
-                ':student_username' => $student_username,
+                ':student_id' => $student_id,
                 ':course_id'  => $course_id,
                 ':grade'      => $grade,
-                ':points'     => $points,
-                ':semester'   => $semester,
-                ':year'       => $year
+                ':score'      => $score,
+                ':comments'   => $comments
             ]);
         }
 
         $_SESSION['success'] = "✅ Grades updated successfully!";
-        header("Location: edit_grade.php?student_username=" . $student_username);
+        header("Location: edit_grade.php?student_id=" . $student_id);
         exit;
     }
 }
@@ -86,11 +84,11 @@ if ($student_username) {
   <!-- Student Dropdown -->
   <form method="get" class="mb-4 card p-3">
     <label class="form-label">Select Student</label>
-    <select name="student_username" class="form-select" required>
+    <select name="student_id" class="form-select" required>
       <option value="">-- Choose Student --</option>
       <?php foreach ($students as $s): ?>
-        <option value="<?= $s['username'] ?>" <?= ($student_username == $s['username']) ? 'selected' : '' ?>>
-          <?= htmlspecialchars($s['name']) ?>
+        <option value="<?= $s['id'] ?>" <?= ($student_id == $s['id']) ? 'selected' : '' ?>>
+          <?= htmlspecialchars($s['name']) ?> (<?= htmlspecialchars($s['student_id']) ?>)
         </option>
       <?php endforeach; ?>
     </select>
@@ -98,7 +96,7 @@ if ($student_username) {
   </form>
 
   <?php if ($student): ?>
-    <h4 class="mb-3">Grades for <?= htmlspecialchars($student['name']) ?></h4>
+    <h4 class="mb-3">Grades for <?= htmlspecialchars($student['name']) ?> (<?= htmlspecialchars($student['student_id']) ?>)</h4>
 
     <?php if (isset($_SESSION['error'])): ?>
       <div class="alert alert-danger"><?= $_SESSION['error']; unset($_SESSION['error']); ?></div>
@@ -113,9 +111,8 @@ if ($student_username) {
           <tr>
             <th>Course</th>
             <th>Grade</th>
-            <th>Points</th>
-            <th>Semester</th>
-            <th>Year</th>
+            <th>Score</th>
+            <th>Comments</th>
           </tr>
         </thead>
         <tbody>
@@ -123,26 +120,21 @@ if ($student_username) {
             $existing = $grades[$c['id']] ?? null;
           ?>
           <tr>
-            <td><?= htmlspecialchars($c['course_name']) ?></td>
+            <td><?= htmlspecialchars($c['title']) ?></td>
             <td>
               <input type="text" name="grades[<?= $c['id'] ?>][grade]" 
                      value="<?= htmlspecialchars($existing['grade'] ?? '') ?>" 
-                     class="form-control form-control-sm" placeholder="A, B, C, D, F">
+                     class="form-control form-control-sm" placeholder="A, B+, B, C, etc.">
             </td>
             <td>
-              <input type="number" step="0.01" name="grades[<?= $c['id'] ?>][points]" 
-                     value="<?= htmlspecialchars($existing['points'] ?? '') ?>" 
-                     class="form-control form-control-sm">
+              <input type="number" step="1" min="0" max="100" name="grades[<?= $c['id'] ?>][score]" 
+                     value="<?= htmlspecialchars($existing['score'] ?? '') ?>" 
+                     class="form-control form-control-sm" placeholder="0-100">
             </td>
             <td>
-              <input type="text" name="grades[<?= $c['id'] ?>][semester]" 
-                     value="<?= htmlspecialchars($existing['semester'] ?? '') ?>" 
-                     class="form-control form-control-sm" placeholder="Fall, Spring">
-            </td>
-            <td>
-              <input type="number" name="grades[<?= $c['id'] ?>][year]" 
-                     value="<?= htmlspecialchars($existing['year'] ?? date('Y')) ?>" 
-                     class="form-control form-control-sm">
+              <input type="text" name="grades[<?= $c['id'] ?>][comments]" 
+                     value="<?= htmlspecialchars($existing['comments'] ?? '') ?>" 
+                     class="form-control form-control-sm" placeholder="Optional comments">
             </td>
           </tr>
           <?php endforeach; ?>
@@ -156,5 +148,57 @@ if ($student_username) {
     </form>
   <?php endif; ?>
 </div>
+
+<script>
+// Auto-calculate grade based on score
+function calculateGrade(score) {
+    score = parseFloat(score);
+    
+    if (isNaN(score) || score < 0 || score > 100) {
+        return '';
+    }
+    
+    // Grade scale: A=95-100, A-=90-94, B+=85-89, B=80-84, B-=75-79, 
+    // C+=70-74, C=65-69, C-=60-64, D+=55-59, D=50-54, D-=0-49
+    if (score >= 95) return 'A';
+    if (score >= 90) return 'A-';
+    if (score >= 85) return 'B+';
+    if (score >= 80) return 'B';
+    if (score >= 75) return 'B-';
+    if (score >= 70) return 'C+';
+    if (score >= 65) return 'C';
+    if (score >= 60) return 'C-';
+    if (score >= 55) return 'D+';
+    if (score >= 50) return 'D';
+    return 'D-';
+}
+
+// Add event listeners to all score inputs
+document.addEventListener('DOMContentLoaded', function() {
+    const scoreInputs = document.querySelectorAll('input[name*="[score]"]');
+    
+    scoreInputs.forEach(function(scoreInput) {
+        // Get the corresponding grade input
+        const row = scoreInput.closest('tr');
+        const gradeInput = row.querySelector('input[name*="[grade]"]');
+        
+        // Update grade when score changes
+        scoreInput.addEventListener('input', function() {
+            const grade = calculateGrade(this.value);
+            if (grade && gradeInput) {
+                gradeInput.value = grade;
+            }
+        });
+        
+        // Calculate grade on page load if score exists
+        if (scoreInput.value) {
+            const grade = calculateGrade(scoreInput.value);
+            if (grade && gradeInput && !gradeInput.value) {
+                gradeInput.value = grade;
+            }
+        }
+    });
+});
+</script>
 </body>
 </html>

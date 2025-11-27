@@ -301,7 +301,7 @@
                         <h1><i class="fas fa-plane me-3"></i>Eagle Flight School</h1>
                         <p class="lead">Soar to new heights with professional pilot training. Your journey to the skies starts here.</p>
                         <div class="hero-buttons">
-                            <a href="quick_login.php" class="btn-hero">
+                            <a href="login.php" class="btn-hero">
                                 <i class="fas fa-sign-in-alt me-2"></i>Login Portal
                             </a>
                             <a href="#features" class="btn-outline-hero">
@@ -428,13 +428,13 @@
                         <h2 class="mb-4"><i class="fas fa-sign-in-alt me-2"></i>Access Your Account</h2>
                         <p class="mb-4">Choose your role to access the Eagle Flight School management system</p>
                         <div class="d-flex flex-wrap justify-content-center gap-3">
-                            <a href="quick_login.php" class="login-btn">
+                            <a href="login.php" class="login-btn">
                                 <i class="fas fa-user-graduate me-2"></i>Student Login
                             </a>
-                            <a href="quick_login.php" class="login-btn">
+                            <a href="login.php" class="login-btn">
                                 <i class="fas fa-chalkboard-teacher me-2"></i>Instructor Login
                             </a>
-                            <a href="quick_login.php" class="login-btn">
+                            <a href="login.php" class="login-btn">
                                 <i class="fas fa-user-shield me-2"></i>Admin Login
                             </a>
                         </div>
